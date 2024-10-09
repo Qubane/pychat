@@ -1,3 +1,12 @@
+"""
+PyChat main starting file
+"""
+
+
+import asyncio
+from src.globals import *
+
+
 class Application:
     """
     Main application for pychat
@@ -10,6 +19,16 @@ class Application:
         """
         Runs the application
         """
+
+    async def client_handle(self, host: str):
+        """
+        Handles the client's connection
+        """
+
+        reader, writer = await asyncio.open_connection(
+            host, CONNECTION_PORT)
+
+        # do something here
 
 
 def main():
