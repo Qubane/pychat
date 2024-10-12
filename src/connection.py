@@ -12,17 +12,9 @@ class ClientConnection:
     Controls client connection
     """
 
-    def __init__(self):
-        self.reader: asyncio.StreamReader | None = None
-        self.writer: asyncio.StreamWriter | None = None
-
-    async def connect_to_host(self, host: str, port: int):
-        """
-        Connects client to host
-        """
-
-        self.reader, self.writer = await asyncio.open_connection(
-            host, port)
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        self.reader: asyncio.StreamReader = reader
+        self.writer: asyncio.StreamWriter = writer
 
 
 class ServerConnection:
@@ -32,6 +24,7 @@ class ServerConnection:
 
     def __init__(self):
         self.server: asyncio.Server | None = None
+        self.client_list: list[ClientConnection] = []
 
     async def start_server(self, host: str, port: int, ctx: ssl.SSLContext | None = None):
         """
@@ -49,3 +42,13 @@ class ServerConnection:
         """
         Server client connection handler
         """
+
+        self.client_list.append(ClientConnection(reader, writer))
+
+
+async def connect_to_host(host: str, port: int) -> ClientConnection:
+    """
+    Connects to the given host
+    """
+
+    return ClientConnection(*(await asyncio.open_connection(host, port)))
