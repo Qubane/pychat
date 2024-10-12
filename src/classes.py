@@ -41,3 +41,19 @@ class User:
             if arg == "user_id":
                 raise Exception("Unable to change user id for existing user")
             setattr(self, arg, val)
+
+
+class Message:
+    """
+    Basic message class
+    """
+
+    def __init__(self, sender: UserID, message: str, **kwargs):
+        self.sender: UserID = sender
+        self.message: str = message
+
+        for arg, val in kwargs.items():
+            setattr(self, arg, val)
+
+    def __repr__(self):
+        return f"{{msg by {self.sender}}}"
