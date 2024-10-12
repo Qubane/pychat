@@ -3,13 +3,28 @@ PyChat class definitions
 """
 
 
+class UserID:
+    """
+    Used ID
+    """
+
+    def __init__(self, identity: int):
+        self._id: int = identity
+
+    def __repr__(self):
+        return f"{{id:{self._id}}}"
+
+    def __int__(self):
+        return self._id
+
+
 class User:
     """
     Basic user class
     """
 
-    def __init__(self, uid: int, nickname: str, **kwargs):
-        self.user_id: int = uid
+    def __init__(self, uid: UserID, nickname: str, **kwargs):
+        self.user_id: UserID = uid
         self.nickname: str = nickname
         self.description: str = "no description"
 
