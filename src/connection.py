@@ -3,8 +3,8 @@ Connection module for PyChat
 """
 
 
-import ssl
 import asyncio
+from src.globals import MESSAGE_TERMINATION
 
 
 class ClientConnection:
@@ -26,14 +26,13 @@ class ServerConnection:
         self.server: asyncio.Server | None = None
         self.client_list: list[ClientConnection] = []
 
-    async def start_server(self, host: str, port: int, ctx: ssl.SSLContext | None = None):
+    async def start_server(self, host: str, port: int):
         """
         Starts the server
         """
 
         self.server = await asyncio.start_server(
-            host=host, port=port, ssl=ctx,
-            client_connected_cb=self.client_handle)
+            host=host, port=port, client_connected_cb=self.client_handle)
 
         async with self.server:
             await self.server.serve_forever()
@@ -43,7 +42,14 @@ class ServerConnection:
         Server client connection handler
         """
 
-        self.client_list.append(ClientConnection(reader, writer))
+        served_client = ClientConnection(reader, writer)
+        self.client_list.append(served_client)
+
+        # check for messages
+        while message := await receive_message(reader):  # fetch message
+            # send to everyone else
+            await asyncio.gather(
+                *[cli.writer.write(message) for cli in self.client_list if cli is not served_client])
 
 
 async def connect_to_host(host: str, port: int) -> ClientConnection:
@@ -52,3 +58,14 @@ async def connect_to_host(host: str, port: int) -> ClientConnection:
     """
 
     return ClientConnection(*(await asyncio.open_connection(host, port)))
+
+
+async def receive_message(reader: asyncio.StreamReader) -> bytes:
+    """
+    Receive a null terminated message
+    """
+
+    try:
+        return await reader.readuntil(MESSAGE_TERMINATION)
+    except (asyncio.IncompleteReadError, asyncio.LimitOverrunError):
+        return b''
