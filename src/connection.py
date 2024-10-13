@@ -35,7 +35,10 @@ class ServerConnection:
             host=host, port=port, client_connected_cb=self.client_handle)
 
         async with self.server:
-            await self.server.serve_forever()
+            try:
+                await self.server.serve_forever()
+            except asyncio.CancelledError:
+                pass
 
     async def client_handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         """
