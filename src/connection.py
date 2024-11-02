@@ -49,7 +49,7 @@ class ServerConnection:
         self.client_list.append(served_client)
 
         # check for messages
-        while message := await receive_message(reader):  # fetch message
+        while message := await receive_message(served_client):  # fetch message
             # send to everyone else
             await asyncio.gather(
                 *[send_message(cli, message) for cli in self.client_list if cli is not served_client])
@@ -63,14 +63,14 @@ async def connect_to_host(host: str, port: int) -> ClientConnection:
     return ClientConnection(*(await asyncio.open_connection(host, port)))
 
 
-async def receive_message(reader: asyncio.StreamReader) -> bytes:
+async def receive_message(client: ClientConnection) -> bytes:
     """
     Receive a null terminated message
     """
 
     try:
-        return await reader.readuntil(MESSAGE_TERMINATION)
-    except (asyncio.IncompleteReadError, asyncio.LimitOverrunError):
+        return await client.reader.readuntil(MESSAGE_TERMINATION)
+    except (asyncio.IncompleteReadError, asyncio.LimitOverrunError, OSError):
         return b''
 
 
