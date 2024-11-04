@@ -3,28 +3,13 @@ PyChat class definitions
 """
 
 
-class UserID:
-    """
-    Used ID
-    """
-
-    def __init__(self, identity: int):
-        self._id: int = identity
-
-    def __repr__(self):
-        return f"{{id:{self._id}}}"
-
-    def __int__(self):
-        return self._id
-
-
 class User:
     """
     Basic user class
     """
 
-    def __init__(self, uid: UserID, nickname: str, **kwargs):
-        self.user_id: UserID = uid
+    def __init__(self, user_id: int, nickname: str, **kwargs):
+        self.user_id: int = user_id
         self.nickname: str = nickname
         self.description: str = "no description"
 
@@ -48,12 +33,12 @@ class Message:
     Basic message class
     """
 
-    def __init__(self, sender: UserID, message: str, **kwargs):
-        self.sender: UserID = sender
+    def __init__(self, user_id: int, message: str, **kwargs):
+        self.user_id: int = user_id
         self.message: str = message
 
         for arg, val in kwargs.items():
             setattr(self, arg, val)
 
     def __repr__(self):
-        return f"{{msg by {self.sender}}}"
+        return f"{{msg by {self.user_id}}}"
