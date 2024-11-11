@@ -4,6 +4,7 @@ Terminal manipulations
 
 
 import os
+from sshkeyboard import listen_keyboard_manual
 
 
 class Terminal:
@@ -14,8 +15,10 @@ class Terminal:
     width: int = 120
     height: int = 30
 
+    _buffer: str = ""
+
     @classmethod
-    def init(cls):
+    def init(cls) -> None:
         """
         Initializes terminal
         """
@@ -29,16 +32,35 @@ class Terminal:
         except OSError:
             pass
 
-    @staticmethod
-    def clear() -> None:
+    @classmethod
+    async def print(cls, text: str) -> None:
+        """
+        Prints text to the terminal
+        """
+
+        cls._buffer += text
+        await cls.update()
+
+    @classmethod
+    async def update(cls) -> None:
+        """
+        Updates terminal
+        """
+
+        os.system("cls" if os.name == "nt" else "clear")
+        print("\x1b[H" + cls._buffer, end="", flush=True)
+
+    @classmethod
+    async def clear(cls) -> None:
         """
         Clears screen and buffer
         """
 
+        cls._buffer = ""
         os.system("cls" if os.name == "nt" else "clear")
 
     @staticmethod
-    def goto(x, y) -> None:
+    async def goto(x, y) -> None:
         """
         Go to X Y pos in terminal
         """
