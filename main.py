@@ -49,13 +49,23 @@ def main():
 
 
 async def debug():
+    async def key(_key: str):
+        await Terminal.print(_key)
+
+    async def command(_command: str):
+        await Terminal.print(_command)
+
+    Terminal.key_callback = key
+    Terminal.command_callback = command
     Terminal.init()
+
     await Terminal.clear()
-
     await Terminal.print("Hello World!\nThis is a small test!")
-
     sleep(1)
     await Terminal.clear()
+
+    while True:
+        await asyncio.sleep(0.1)
 
 
 if __name__ == '__main__':
