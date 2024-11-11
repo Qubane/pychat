@@ -4,7 +4,10 @@ PyChat main starting file
 
 
 import asyncio
+from time import sleep
+
 from src.globals import *
+from src.classes import *
 from src.terminal import *
 from src.connection import *
 
@@ -18,7 +21,8 @@ class Application:
         self.connection: ClientConnection | None = None
 
         self.scroll: int = 0
-        self.messages: list[str] = list()
+        self.messages: list[Message] = list()
+        self.users: list[User] = list()
 
     def run(self):
         """
@@ -28,11 +32,32 @@ class Application:
         Terminal.init()
         Terminal.clear()
 
+    async def user_command_callback(self, user_input: str):
+        """
+        User input callback
+        """
+
+    async def user_key_callback(self, key: str):
+        """
+        User key
+        """
+
 
 def main():
     app = Application()
     app.run()
 
 
+async def debug():
+    Terminal.init()
+    await Terminal.clear()
+
+    await Terminal.print("Hello World!\nThis is a small test!")
+
+    sleep(1)
+    await Terminal.clear()
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    asyncio.run(debug())
