@@ -139,7 +139,7 @@ class Terminal:
         :param pos: position at which to remove a character
         """
 
-        if len(cls._key_buffer) > 0:
+        if 0 < len(cls._key_buffer) != pos:
             cls._key_buffer.pop(pos)
 
     @classmethod
