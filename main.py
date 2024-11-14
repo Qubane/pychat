@@ -39,18 +39,43 @@ class Application:
         Runs the application
         """
 
+        Terminal.command_callback = self.user_command_callback
+        Terminal.key_callback = self.user_key_callback
+
         Terminal.init()
         await Terminal.clear()
+
+        while True:
+            await asyncio.sleep(1)
 
     async def user_command_callback(self, user_input: str):
         """
         User input callback
         """
 
+        if len(user_input) == 0:
+            return
+        if user_input[0] == "/":
+            try:
+                await self.process_command(user_input[1:].split(" "))
+            except Exception as e:
+                await Terminal.print(e.__str__())
+        else:
+            await Terminal.print(user_input)
+
     async def user_key_callback(self, key: str):
         """
         User key
         """
+
+    async def process_command(self, command: list[str]):
+        """
+        Processes given client command
+        """
+
+        match command[0]:
+            case "connect":
+                self.connection = connect_to_host(*command[1].split(":"))
 
 
 def main():
