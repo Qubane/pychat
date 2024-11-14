@@ -29,8 +29,18 @@ class Application:
         Runs the application
         """
 
+        try:
+            asyncio.run(self.run_coro())
+        except KeyboardInterrupt:
+            print(f"\x1b[{Terminal.height}H\x1b[0K\x1b[0mExited.", end="", flush=True)
+
+    async def run_coro(self):
+        """
+        Runs the application
+        """
+
         Terminal.init()
-        Terminal.clear()
+        await Terminal.clear()
 
     async def user_command_callback(self, user_input: str):
         """
@@ -69,5 +79,5 @@ async def debug():
 
 
 if __name__ == '__main__':
-    # main()
-    asyncio.run(debug())
+    main()
+    # asyncio.run(debug())
