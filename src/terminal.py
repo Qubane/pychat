@@ -74,6 +74,7 @@ class Terminal:
         os.system("cls" if os.name == "nt" else "clear")
         print("\x1b[H" + cls._buffer.replace(Color.RESET, cls.bg_color + cls.fr_color),
               end="", flush=True)
+        cls.update_input_field()
 
     @classmethod
     async def clear(cls) -> None:
@@ -83,6 +84,7 @@ class Terminal:
 
         cls._buffer = f"{Color.RESET}"
         os.system("cls" if os.name == "nt" else "clear")
+        cls.update_input_field()
 
     @staticmethod
     async def goto(x, y) -> None:
