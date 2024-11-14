@@ -10,6 +10,12 @@ class Color:
 
     RESET = "\x1b[0m"
 
+    def __add__(self, other):
+        return self + other
+
+    def __iadd__(self, other):
+        return self + other
+
 
 class FRColor(Color):
     """
