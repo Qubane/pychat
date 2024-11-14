@@ -3,12 +3,9 @@ Terminal colors
 """
 
 
-from enum import StrEnum
-
-
-class Color(StrEnum):
+class Color:
     """
-    Color Enum
+    Color base class
     """
 
     RESET = "\x1b[0m"
