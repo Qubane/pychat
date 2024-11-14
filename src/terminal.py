@@ -28,8 +28,12 @@ class Terminal:
     _key_buffer: list[str] = list()
 
     bg_color: Color = BGColor.BLACK
-    bg_field_color: Color = BGColor.BLACK
+    bg_field_color: Color = bg_color
     bg_field_cursor_color: Color = BGColor.GREEN
+
+    fr_color: Color = FRColor.WHITE
+    fr_field_color: Color = fr_color
+    fr_field_cursor_color: Color = fr_color
 
     @classmethod
     def init(cls) -> None:
@@ -67,7 +71,8 @@ class Terminal:
         """
 
         os.system("cls" if os.name == "nt" else "clear")
-        print("\x1b[H" + cls._buffer, end="", flush=True)
+        print("\x1b[H" + cls._buffer.replace(Color.RESET, cls.bg_color + cls.fr_color),
+              end="", flush=True)
 
     @classmethod
     async def clear(cls) -> None:
@@ -75,7 +80,7 @@ class Terminal:
         Clears screen and buffer
         """
 
-        cls._buffer = ""
+        cls._buffer = f"{Color.RESET}"
         os.system("cls" if os.name == "nt" else "clear")
 
     @staticmethod
@@ -157,7 +162,7 @@ class Terminal:
         right = ''.join(cls._key_buffer[cls._key_cursor+1:])
 
         print(f"\x1b[{cls.height};0H"
-              f"{cls.bg_field_color}{left}"
-              f"{cls.bg_field_cursor_color}{middle}"
-              f"{cls.bg_field_color}{right} ",
+              f"{cls.bg_field_color}{cls.fr_field_color}{left}"
+              f"{cls.bg_field_cursor_color}{cls.fr_field_cursor_color}{middle}"
+              f"{cls.bg_field_color}{cls.fr_field_color}{right} ",
               end="", flush=True)
