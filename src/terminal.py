@@ -6,7 +6,7 @@ Terminal manipulations
 import os
 import string
 import asyncio
-from typing import Any
+from src.colors import *
 from collections.abc import Callable, Awaitable
 from sshkeyboard import listen_keyboard_manual
 
@@ -26,6 +26,10 @@ class Terminal:
 
     _key_cursor: int = 0
     _key_buffer: list[str] = list()
+
+    bg_color: Color = BGColor.BLACK
+    bg_field_color: Color = BGColor.BLACK
+    bg_field_cursor_color: Color = BGColor.GREEN
 
     @classmethod
     def init(cls) -> None:
@@ -89,19 +93,71 @@ class Terminal:
         """
 
         if key in string.printable:
-            cls._key_buffer.insert(cls._key_cursor, key)
+            cls.insert_char_into_field(key, cls._key_cursor)
+            cls.move_field_cursor(1)
         elif key == "space":
-            cls._key_buffer.insert(cls._key_cursor, " ")
+            cls.insert_char_into_field(" ", cls._key_cursor)
+            cls.move_field_cursor(1)
         elif key == "backspace":
-            cls._key_buffer.pop(cls._key_cursor - 1)
+            cls.move_field_cursor(-1)
+            cls.pop_char_from_field(cls._key_cursor)
         elif key == "delete":
-            cls._key_buffer.pop(cls._key_cursor)
+            cls.pop_char_from_field(cls._key_cursor)
         elif key == "enter":
-            asyncio.create_task(cls.command_callback(''.join(cls._key_buffer[::-1])))
+            asyncio.create_task(cls.command_callback(''.join(cls._key_buffer)))
             cls._key_buffer.clear()
+            cls._key_cursor = 0
         elif key == "left":
-            cls._key_cursor -= 1
+            cls.move_field_cursor(-1)
         elif key == "right":
-            cls._key_cursor += 1
+            cls.move_field_cursor(1)
         else:
             asyncio.create_task(cls.key_callback(key))
+
+        # update input field
+        cls.update_input_field()
+
+    @classmethod
+    def insert_char_into_field(cls, char: str, pos: int):
+        """
+        Inserts a character at given pos into user input field buffer
+        :param char: character to insert
+        :param pos: position at which to insert a character
+        """
+
+        cls._key_buffer.insert(pos, char)
+
+    @classmethod
+    def pop_char_from_field(cls, pos: int):
+        """
+        Pops a character from user input field buffer
+        :param pos: position at which to remove a character
+        """
+
+        if len(cls._key_buffer) > 0:
+            cls._key_buffer.pop(pos)
+
+    @classmethod
+    def move_field_cursor(cls, offset: int):
+        """
+        Moves cursor around user input field
+        :param offset: cursor offset amount
+        """
+
+        cls._key_cursor = min(len(cls._key_buffer), max(0, cls._key_cursor + offset))
+
+    @classmethod
+    def update_input_field(cls):
+        """
+        Updates user input field
+        """
+
+        left = ''.join(cls._key_buffer[:cls._key_cursor])
+        middle = cls._key_buffer[cls._key_cursor] if cls._key_cursor != len(cls._key_buffer) else " "
+        right = ''.join(cls._key_buffer[cls._key_cursor+1:])
+
+        print(f"\x1b[{cls.height};0H"
+              f"{cls.bg_field_color}{left}"
+              f"{cls.bg_field_cursor_color}{middle}"
+              f"{cls.bg_field_color}{right} ",
+              end="", flush=True)
