@@ -24,8 +24,9 @@ class Terminal:
 
     _buffer: str = ""
 
-    _key_cursor: int = 0
-    _key_buffer: list[str] = list()
+    _f_width: int = width - 2
+    _f_cursor: int = 0
+    _f_buffer: list[str] = list()
 
     bg_color: Color = BGColor.BLACK
     bg_field_color: Color = bg_color
@@ -98,20 +99,20 @@ class Terminal:
         """
 
         if key in string.printable:
-            cls.insert_char_into_field(key, cls._key_cursor)
+            cls.insert_char_into_field(key, cls._f_cursor)
             cls.move_field_cursor(1)
         elif key == "space":
-            cls.insert_char_into_field(" ", cls._key_cursor)
+            cls.insert_char_into_field(" ", cls._f_cursor)
             cls.move_field_cursor(1)
         elif key == "backspace":
             cls.move_field_cursor(-1)
-            cls.pop_char_from_field(cls._key_cursor)
+            cls.pop_char_from_field(cls._f_cursor)
         elif key == "delete":
-            cls.pop_char_from_field(cls._key_cursor)
+            cls.pop_char_from_field(cls._f_cursor)
         elif key == "enter":
-            asyncio.create_task(cls.command_callback(''.join(cls._key_buffer)))
-            cls._key_buffer.clear()
-            cls._key_cursor = 0
+            asyncio.create_task(cls.command_callback(''.join(cls._f_buffer)))
+            cls._f_buffer.clear()
+            cls._f_cursor = 0
         elif key == "left":
             cls.move_field_cursor(-1)
         elif key == "right":
@@ -130,7 +131,7 @@ class Terminal:
         :param pos: position at which to insert a character
         """
 
-        cls._key_buffer.insert(pos, char)
+        cls._f_buffer.insert(pos, char)
 
     @classmethod
     def pop_char_from_field(cls, pos: int):
@@ -139,8 +140,8 @@ class Terminal:
         :param pos: position at which to remove a character
         """
 
-        if 0 < len(cls._key_buffer) != pos:
-            cls._key_buffer.pop(pos)
+        if 0 < len(cls._f_buffer) != pos:
+            cls._f_buffer.pop(pos)
 
     @classmethod
     def move_field_cursor(cls, offset: int):
@@ -149,7 +150,7 @@ class Terminal:
         :param offset: cursor offset amount
         """
 
-        cls._key_cursor = min(len(cls._key_buffer), max(0, cls._key_cursor + offset))
+        cls._f_cursor = min(len(cls._f_buffer), max(0, cls._f_cursor + offset))
 
     @classmethod
     def update_input_field(cls):
@@ -157,12 +158,20 @@ class Terminal:
         Updates user input field
         """
 
-        left = ''.join(cls._key_buffer[:cls._key_cursor])
-        middle = cls._key_buffer[cls._key_cursor] if cls._key_cursor != len(cls._key_buffer) else " "
-        right = ''.join(cls._key_buffer[cls._key_cursor+1:])
+        if len(cls._f_buffer) > cls._f_width:
+            part = cls._f_cursor // cls._f_width
+            cursor = cls._f_cursor % cls._f_width
+            buf = cls._f_buffer[part * cls._f_width:(part + 1) * cls._f_width]
+        else:
+            cursor = cls._f_cursor
+            buf = cls._f_buffer
+
+        left = ''.join(buf[:cursor])
+        middle = buf[cursor] if cursor != len(buf) else " "
+        right = ''.join(buf[cursor + 1:])
 
         print(f"\x1b[{cls.height};0H"
               f"{cls.bg_field_color}{cls.fr_field_color}{left}"
               f"{cls.bg_field_cursor_color}{cls.fr_field_cursor_color}{middle}"
-              f"{cls.bg_field_color}{cls.fr_field_color}{right} ",
+              f"{cls.bg_field_color}{cls.fr_field_color}{right}\x1b[0K",
               end="", flush=True)
