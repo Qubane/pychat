@@ -30,7 +30,7 @@ class ClientConnection:
         """
 
         try:
-            return await self.reader.readuntil(MESSAGE_TERMINATION)
+            return (await self.reader.readuntil(MESSAGE_TERMINATION))[:-len(MESSAGE_TERMINATION)]
         except (asyncio.IncompleteReadError, asyncio.LimitOverrunError, OSError):
             return b''
 
