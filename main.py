@@ -4,8 +4,6 @@ PyChat main starting file
 
 
 import asyncio
-from time import sleep
-
 from src.globals import *
 from src.classes import *
 from src.terminal import *
@@ -44,9 +42,7 @@ class Application:
 
         Terminal.init()
         await Terminal.clear()
-
-        while True:
-            await asyncio.sleep(1)
+        await Terminal.start_listening()
 
     async def user_command_callback(self, user_input: str):
         """
@@ -75,7 +71,26 @@ class Application:
 
         match command[0]:
             case "connect":
-                self.connection = connect_to_host(*command[1].split(":"))
+                if len(command) != 2:
+                    raise Exception("Incorrect number of arguments")
+                host: list[str] = command[1].split(":")
+                if len(host) != 2:
+                    raise Exception("Incorrect host address; must be in form '[IP]:[PORT]'")
+                self.connection = connect_to_host(*host)
+            case "exit":
+                pass  # idk how to implement this without exception :/
+            case _:
+                pass
+
+    async def user_connection_handler(self):
+        """
+        Handles user's connection
+        """
+
+    async def user_send_message(self):
+        """
+        Sends message to host server
+        """
 
 
 def main():
@@ -92,15 +107,11 @@ async def debug():
 
     Terminal.key_callback = key
     Terminal.command_callback = command
+
     Terminal.init()
 
     await Terminal.clear()
-    await Terminal.print("Hello World!\nThis is a small test!")
-    sleep(1)
-    await Terminal.clear()
-
-    while True:
-        await asyncio.sleep(0.1)
+    await Terminal.start_listening()
 
 
 if __name__ == '__main__':
