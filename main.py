@@ -51,13 +51,17 @@ class Application:
 
         if len(user_input) == 0:
             return
+
         if user_input[0] == "/":
             try:
                 await self.process_command(user_input[1:].split(" "))
             except Exception as e:
                 await Terminal.print(e.__str__())
-        else:
-            await Terminal.print(user_input)
+        else:  # TODO: fix this trash
+            try:
+                await self.user_send_message(user_input)
+            except Exception as e:
+                await Terminal.print(e.__str__())
 
     async def user_key_callback(self, key: str):
         """
@@ -76,21 +80,32 @@ class Application:
                 host: list[str] = command[1].split(":")
                 if len(host) != 2:
                     raise Exception("Incorrect host address; must be in form '[IP]:[PORT]'")
-                self.connection = connect_to_host(*host)
+                self.connection = await connect_to_host(*host)
+                asyncio.create_task(self.user_connection_handler())
+                await Terminal.print("connection successful!")
             case "exit":
                 pass  # idk how to implement this without exception :/
             case _:
-                pass
+                raise Exception("Unknown command, there is no help :(")
 
     async def user_connection_handler(self):
         """
         Handles user's connection
         """
 
-    async def user_send_message(self):
+        while True:
+            message = await self.connection.receive_message()
+            await Terminal.print(message.decode("utf-8"))
+
+    async def user_send_message(self, message: str):
         """
-        Sends message to host server
+        Sends text message to host server
         """
+
+        if self.connection is None:
+            raise Exception("Use '/connect [IP]:[PORT]' to connect to host")
+        await self.connection.send_message(message.encode("utf-8"))
+        await Terminal.print(message)
 
 
 def main():
