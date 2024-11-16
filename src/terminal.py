@@ -51,7 +51,13 @@ class Terminal:
         except OSError:
             pass
 
-        asyncio.create_task(listen_keyboard_manual(
+    @classmethod
+    async def start_listening(cls):
+        """
+        Starts listening to keyboard presses
+        """
+
+        await asyncio.create_task(listen_keyboard_manual(
             on_press=cls._keypress,
             delay_second_char=0.05,
             lower=False))
@@ -161,16 +167,16 @@ class Terminal:
         """
 
         if len(cls._f_buffer) > cls._f_width:
-            part = cls._f_cursor // cls._f_width
-            cursor = cls._f_cursor % cls._f_width
-            buf = cls._f_buffer[part * cls._f_width:(part + 1) * cls._f_width]
+            buffer_part = cls._f_cursor // cls._f_width
+            field_cursor = cls._f_cursor % cls._f_width
+            field_buffer = cls._f_buffer[buffer_part * cls._f_width:(buffer_part + 1) * cls._f_width]
         else:
-            cursor = cls._f_cursor
-            buf = cls._f_buffer
+            field_cursor = cls._f_cursor
+            field_buffer = cls._f_buffer
 
-        left = ''.join(buf[:cursor])
-        middle = buf[cursor] if cursor != len(buf) else " "
-        right = ''.join(buf[cursor + 1:])
+        left = ''.join(field_buffer[:field_cursor])
+        middle = field_buffer[field_cursor] if field_cursor != len(field_buffer) else " "
+        right = ''.join(field_buffer[field_cursor + 1:])
 
         print(f"\x1b[{cls.height};0H"
               f"{cls.bg_field_color}{cls.fr_field_color}{left}"
