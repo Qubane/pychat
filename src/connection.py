@@ -16,6 +16,24 @@ class ClientConnection:
         self.reader: asyncio.StreamReader = reader
         self.writer: asyncio.StreamWriter = writer
 
+    async def send_message(self, message: bytes):
+        """
+        Sends a terminated message to a client/host
+        """
+
+        self.writer.write(message + MESSAGE_TERMINATION)
+        await self.writer.drain()
+
+    async def receive_message(self) -> bytes:
+        """
+        Receive a null terminated message
+        """
+
+        try:
+            return await self.reader.readuntil(MESSAGE_TERMINATION)
+        except (asyncio.IncompleteReadError, asyncio.LimitOverrunError, OSError):
+            return b''
+
 
 class ServerConnection:
     """
@@ -49,10 +67,10 @@ class ServerConnection:
         self.client_list.append(served_client)
 
         # check for messages
-        while message := await receive_message(served_client):  # fetch message
+        while message := await served_client.receive_message():  # fetch message
             # send to everyone else
             await asyncio.gather(
-                *[send_message(cli, message) for cli in self.client_list if cli is not served_client])
+                *[cli.send_message(message) for cli in self.client_list if cli is not served_client])
 
 
 async def connect_to_host(host: str, port: int) -> ClientConnection:
@@ -61,23 +79,3 @@ async def connect_to_host(host: str, port: int) -> ClientConnection:
     """
 
     return ClientConnection(*(await asyncio.open_connection(host, port)))
-
-
-async def receive_message(client: ClientConnection) -> bytes:
-    """
-    Receive a null terminated message
-    """
-
-    try:
-        return await client.reader.readuntil(MESSAGE_TERMINATION)
-    except (asyncio.IncompleteReadError, asyncio.LimitOverrunError, OSError):
-        return b''
-
-
-async def send_message(client: ClientConnection, message: bytes):
-    """
-    Sends a terminated message to a client
-    """
-
-    client.writer.write(message + MESSAGE_TERMINATION)
-    await client.writer.drain()
